@@ -20,7 +20,7 @@ public class USSImageupload {
     static UpYun upyun;
     static Keys key;
 
-    public ReturnImage ImageuploadUSS(Map<String, File> fileMap, String username,Integer keyID) {
+    public ReturnImage ImageuploadUSS(Map<String, File> fileMap, String username, Integer keyID) {
         ReturnImage returnImage = new ReturnImage();
         File file = null;
         ObjectMetadata meta = new ObjectMetadata();
@@ -31,16 +31,16 @@ public class USSImageupload {
                 file = entry.getValue();
                 upyun.setContentMD5(UpYun.md5(file));
                 boolean result = upyun.writeFile(username + "/" + ShortUID + "." + entry.getKey(), file, true);
-                if(result){
+                if (result) {
                     returnImage.setImgname(username + "/" + ShortUID + "." + entry.getKey());
-                    returnImage.setImgurl(key.getRequestAddress() + "/" +username + "/" + ShortUID + "." + entry.getKey());
+                    returnImage.setImgurl(key.getRequestAddress() + "/" + username + "/" + ShortUID + "." + entry.getKey());
                     returnImage.setImgSize(entry.getValue().length());
                     returnImage.setCode("200");
-                }else{
+                } else {
                     System.err.println("上传失败");
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             returnImage.setCode("500");
         }
@@ -51,16 +51,16 @@ public class USSImageupload {
     //初始化
     public static Integer Initialize(Keys k) {
         int ret = -1;
-        if(k.getStorageType()!=null && k.getAccessKey() != null && k.getAccessSecret() != null && k.getBucketname() != null
-                && k.getRequestAddress() !=null ) {
-            if(!k.getStorageType().equals("") && !k.getAccessKey().equals("") && !k.getAccessSecret().equals("") && !k.getBucketname().equals("")
-                    && !k.getRequestAddress().equals("") ) {
+        if (k.getStorageType() != null && k.getAccessKey() != null && k.getAccessSecret() != null && k.getBucketname() != null
+                && k.getRequestAddress() != null) {
+            if (!k.getStorageType().equals("") && !k.getAccessKey().equals("") && !k.getAccessSecret().equals("") && !k.getBucketname().equals("")
+                    && !k.getRequestAddress().equals("")) {
                 // 初始化
                 // 创建UpYun实例。
                 UpYun upyun = new UpYun(k.getBucketname(), k.getAccessKey(), k.getAccessSecret());
                 List<UpYun.FolderItem> items = null;
                 try {
-                    items = upyun.readDir("/",null);
+                    items = upyun.readDir("/", null);
                     ret = 1;
                     upyun = upyun;
                     key = k;
@@ -79,7 +79,7 @@ public class USSImageupload {
             boolean result = upyun.deleteFile(fileName, null);
         } catch (Exception e) {
             e.printStackTrace();
-            b=false;
+            b = false;
         }
         return b;
     }

@@ -53,6 +53,7 @@ public class FirstJob {
 		try{
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String currdate = format.format(new Date());
+			//根据时间查询所有的照片
 			List<Images> imagesList = imgTempService.selectDelImgUidList(currdate);
 			if(imagesList.size()==0){
 //				System.out.println("定时任务.//没有期限图片");

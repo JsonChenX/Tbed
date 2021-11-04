@@ -72,7 +72,7 @@ public class AdminController {
         Msg msg = new Msg();
         Subject subject = SecurityUtils.getSubject();
         User user = (User) subject.getPrincipal();
-        user =  userService.getUsers(user);
+        user = userService.getUsers(user);
         JSONObject jsonObject = new JSONObject();
         UploadConfig uploadConfig = uploadConfigService.getUpdateConfig();
         Imgreview imgreview = imgreviewService.selectByPrimaryKey(1);//查询非法个数
@@ -81,46 +81,46 @@ public class AdminController {
         jsonObject.put("myImgTotal", imgService.countimg(user.getId())); //我的图片数
         jsonObject.put("myAlbumTitle", albumService.selectAlbumCount(user.getId()));//我的画廊数量
         long memory = Long.valueOf(user.getMemory());//分配量
-        Long usermemory = imgService.getusermemory(user.getId())==null?0L:imgService.getusermemory(user.getId());
-        if(memory==0){
-            jsonObject.put("myMemory","无容量");
-        }else{
-            Double aDouble = Double.valueOf(String.format("%.2f", (((double)usermemory/(double)memory)*100)));
-            if(aDouble>=999){
-                jsonObject.put("myMemory",999);
-            }else{
-                jsonObject.put("myMemory",aDouble);
+        Long usermemory = imgService.getusermemory(user.getId()) == null ? 0L : imgService.getusermemory(user.getId());
+        if (memory == 0) {
+            jsonObject.put("myMemory", "无容量");
+        } else {
+            Double aDouble = Double.valueOf(String.format("%.2f", (((double) usermemory / (double) memory) * 100)));
+            if (aDouble >= 999) {
+                jsonObject.put("myMemory", 999);
+            } else {
+                jsonObject.put("myMemory", aDouble);
             }
         }
-        jsonObject.put("myMemorySum",SetFiles.readableFileSize(memory));
-        if(user.getLevel()>1){
+        jsonObject.put("myMemorySum", SetFiles.readableFileSize(memory));
+        if (user.getLevel() > 1) {
             ok = "true";
             //管理员
-            jsonObject.put("imgTotal", imgService.counts(null) ); //admin  站点图片数
+            jsonObject.put("imgTotal", imgService.counts(null)); //admin  站点图片数
             jsonObject.put("userTotal", userService.getUserTotal()); //admin  用户个数
             jsonObject.put("ViolationImgTotal", imgreview.getCount()); //admin 非法图片
-            jsonObject.put("ViolationSwitch", isImgreviewOK==null?0:isImgreviewOK.getId()); //admin 非法图片开关
+            jsonObject.put("ViolationSwitch", isImgreviewOK == null ? 0 : isImgreviewOK.getId()); //admin 非法图片开关
             jsonObject.put("VisitorUpload", uploadConfig.getIsupdate());//是否禁用了游客上传
             jsonObject.put("VisitorMemory", SetFiles.readableFileSize(Long.valueOf(uploadConfig.getVisitormemory())));//访客共大小
-            if(uploadConfig.getIsupdate()!=1){
+            if (uploadConfig.getIsupdate() != 1) {
                 jsonObject.put("VisitorUpload", 0);//是否禁用了游客上传
-                jsonObject.put("VisitorProportion",100.00);//游客用量%占比
+                jsonObject.put("VisitorProportion", 100.00);//游客用量%占比
                 jsonObject.put("VisitorMemory", "禁用");//访客共大小
-            }else{
-                Long temp = imgService.getusermemory(0)==null?0:imgService.getusermemory(0);
+            } else {
+                Long temp = imgService.getusermemory(0) == null ? 0 : imgService.getusermemory(0);
                 jsonObject.put("UsedMemory", (temp == null ? 0 : SetFiles.readableFileSize(temp)));//访客已用大小
-                if(Long.valueOf(uploadConfig.getVisitormemory())==0){
-                    jsonObject.put("VisitorProportion",100.00);//游客用量%占比
-                }else if(Long.valueOf(uploadConfig.getVisitormemory())==-1){
-                    jsonObject.put("VisitorProportion",0);//游客用量%占比
+                if (Long.parseLong(uploadConfig.getVisitormemory()) == 0) {
+                    jsonObject.put("VisitorProportion", 100.00);//游客用量%占比
+                } else if (Long.parseLong(uploadConfig.getVisitormemory()) == -1) {
+                    jsonObject.put("VisitorProportion", 0);//游客用量%占比
                     jsonObject.put("VisitorMemory", "无限");//访客共大小
-                }else{
+                } else {
                     double sum = Double.valueOf(uploadConfig.getVisitormemory());
                     Double aDouble = Double.valueOf(String.format("%.2f", ((double) temp / sum) * 100));
-                    if(aDouble>=999){
-                        jsonObject.put("VisitorProportion",999);//游客用量%占比
-                    }else{
-                        jsonObject.put("VisitorProportion",aDouble);//游客用量%占比
+                    if (aDouble >= 999) {
+                        jsonObject.put("VisitorProportion", 999);//游客用量%占比
+                    } else {
+                        jsonObject.put("VisitorProportion", aDouble);//游客用量%占比
                     }
                 }
             }
@@ -138,31 +138,31 @@ public class AdminController {
         final JSONObject jsonObject = JSONObject.parseObject(data);
         Subject subject = SecurityUtils.getSubject();
         User user = (User) subject.getPrincipal();
-        user =  userService.getUsers(user);
-        if(user.getIsok()==0){
+        user = userService.getUsers(user);
+        if (user.getIsok() == 0) {
             msg.setCode("100403");
             msg.setInfo("你暂时无法使用此功能");
             return msg;
         }
-        if(null==user){
+        if (null == user) {
             msg.setCode("100405");
             msg.setInfo("用户信息不存在");
             return msg;
-        }else{
+        } else {
             long sizes = 0;
             Code code = codeService.selectCodekey(jsonObject.getString("code"));
-            if(null==code){
+            if (null == code) {
                 msg.setCode("100404");
                 msg.setInfo("扩容码不存在,请重新填写");
                 return msg;
             }
             Long userMemory = Long.valueOf(user.getMemory());
-            sizes = Long.valueOf(code.getValue())+ userMemory;
+            sizes = Long.valueOf(code.getValue()) + userMemory;
             User newMemoryUser = new User();
             newMemoryUser.setMemory(Long.toString(sizes));
             newMemoryUser.setId(user.getId());
-            userService.usersetmemory(newMemoryUser,jsonObject.getString("code"));
-            msg.setInfo("你已成功扩容"+SetFiles.readableFileSize(sizes));
+            userService.usersetmemory(newMemoryUser, jsonObject.getString("code"));
+            msg.setInfo("你已成功扩容" + SetFiles.readableFileSize(sizes));
             return msg;
         }
     }
@@ -176,14 +176,14 @@ public class AdminController {
         try {
             Subject subject = SecurityUtils.getSubject();
             User user = (User) subject.getPrincipal();
-            user =  userService.getUsers(user);
-            if(user.getLevel()>1){
-                jsonObject.put("RecentlyUser",imgService.RecentlyUser());
-                jsonObject.put("RecentlyUploaded",imgService.RecentlyUploaded(user.getId()));
-            }else{
-                jsonObject.put("RecentlyUploaded",imgService.RecentlyUploaded(user.getId()));
+            user = userService.getUsers(user);
+            if (user.getLevel() > 1) {
+                jsonObject.put("RecentlyUser", imgService.RecentlyUser());
+                jsonObject.put("RecentlyUploaded", imgService.RecentlyUploaded(user.getId()));
+            } else {
+                jsonObject.put("RecentlyUploaded", imgService.RecentlyUploaded(user.getId()));
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             msg.setInfo("系统内部错误");
             msg.setCode("500");
@@ -195,20 +195,20 @@ public class AdminController {
 
     @PostMapping("/getYyyy")//new
     @ResponseBody
-    public Msg getYyyy(@RequestParam(value = "data", defaultValue = "") String data){
+    public Msg getYyyy(@RequestParam(value = "data", defaultValue = "") String data) {
         final Msg msg = new Msg();
         Subject subject = SecurityUtils.getSubject();
         User u = (User) subject.getPrincipal();
         final JSONObject jsonObject = new JSONObject();
-        jsonObject.put("allYyyy",imgService.getyyyy(null));
-        jsonObject.put("userYyyy",imgService.getyyyy(u.getId()));
+        jsonObject.put("allYyyy", imgService.getyyyy(null));
+        jsonObject.put("userYyyy", imgService.getyyyy(u.getId()));
         msg.setData(jsonObject);
         return msg;
     }
 
     @PostMapping("/getChart")//new
     @ResponseBody
-    public Msg getChart(@RequestParam(value = "data", defaultValue = "") String data){
+    public Msg getChart(@RequestParam(value = "data", defaultValue = "") String data) {
         Msg msg = new Msg();
         JSONObject jsonObject = JSONObject.parseObject(data);
         String yyyy = jsonObject.getString("yyyy");
@@ -216,19 +216,19 @@ public class AdminController {
 
         Subject subject = SecurityUtils.getSubject();
         User u = (User) subject.getPrincipal();
-        List<Images> list =null;
-        if(u.getLevel()>1){
-            if(type==2){
+        List<Images> list = null;
+        if (u.getLevel() > 1) {
+            if (type == 2) {
                 Images images = new Images();
                 images.setYyyy(yyyy);
                 list = imgService.countByM(images);
-            }else{
+            } else {
                 Images images = new Images();
                 images.setYyyy(yyyy);
                 images.setUserid(u.getId());
                 list = imgService.countByM(images);
             }
-        }else{
+        } else {
             Images images = new Images();
             images.setYyyy(yyyy);
             images.setUserid(u.getId());
@@ -239,9 +239,9 @@ public class AdminController {
         for (int j = 0; j < list.size(); j++) {
             for (int i = 0; i < json.size(); i++) {
                 JSONObject jobj = json.getJSONObject(i);
-                if(jobj.getInteger("id")==list.get(j).getMonthNum()){
-                    jobj.put("monthNum",getChinaes(list.get(j).getMonthNum()));
-                    jobj.put("countNum",list.get(j).getCountNum());
+                if (jobj.getInteger("id") == list.get(j).getMonthNum()) {
+                    jobj.put("monthNum", getChinaes(list.get(j).getMonthNum()));
+                    jobj.put("countNum", list.get(j).getCountNum());
                 }
             }
         }
@@ -284,13 +284,13 @@ public class AdminController {
         String classifuids = jsonObj.getString("classifuids");
         boolean violation = jsonObj.getBoolean("violation");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        if(starttime!=null){
+        if (starttime != null) {
             try {
                 Date date1 = format.parse(starttime);
-                Date date2 = format.parse(stoptime==null?format.format(new Date()):stoptime);
+                Date date2 = format.parse(stoptime == null ? format.format(new Date()) : stoptime);
                 int compareTo = date1.compareTo(date2);
                 System.out.println(compareTo);
-                if(compareTo==1){
+                if (compareTo == 1) {
                     msg.setCode("110500");
                     msg.setInfo("起始日期不能大于结束日期");
                     return msg;
@@ -304,7 +304,7 @@ public class AdminController {
         }
         Images img = new Images();
         PageHelper.startPage(pageNum, pageSize);
-        if(violation){
+        if (violation) {
             img.setViolation("true");
         }
         img.setUsername(username);
@@ -312,13 +312,13 @@ public class AdminController {
         img.setSelecttype(selecttype);
         img.setStarttime(starttime);
         img.setStoptime(stoptime);
-        if(classifuids!=null){
+        if (classifuids != null) {
             String[] calssif = classifuids.split(",");
             img.setClassifuidlist(calssif);
         }
-        if(subject.hasRole("admin")){
+        if (subject.hasRole("admin")) {
             img.setUserid(null);
-        }else{
+        } else {
             //普通用户
             img.setUserid(user.getId());
         }
@@ -341,8 +341,8 @@ public class AdminController {
             u.setId(user.getId());
             User userInfo = userService.getUsers(u);
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("username",userInfo.getUsername());
-            jsonObject.put("email",userInfo.getEmail());
+            jsonObject.put("username", userInfo.getUsername());
+            jsonObject.put("email", userInfo.getEmail());
             msg.setData(jsonObject);
         } catch (Exception e) {
             e.printStackTrace();
@@ -364,44 +364,44 @@ public class AdminController {
             Subject subject = SecurityUtils.getSubject();
             User u = (User) subject.getPrincipal();
             User user = new User();
-            if(!SetText.checkEmail(email)){
+            if (!SetText.checkEmail(email)) {
                 msg.setCode("110403");
                 msg.setInfo("邮箱格式不正确");
                 return msg;
             }
             String regex = "^\\w+$";
-            if(username.length()>20 || !username.matches (regex)){
+            if (username.length() > 20 || !username.matches(regex)) {
                 msg.setCode("110403");
                 msg.setInfo("用户名不得超过20位字符");
                 return msg;
             }
-            if(subject.hasRole("admin")){
+            if (subject.hasRole("admin")) {
                 final User userOld = new User();
                 userOld.setId(u.getId());
                 User userInfo = userService.getUsers(userOld);
-                if(!userInfo.getUsername().equals(username)){
+                if (!userInfo.getUsername().equals(username)) {
                     Integer countusername = userService.countusername(username);
-                    if(countusername == 1 || !SysName.CheckSysName(username)){
+                    if (countusername == 1 || !SysName.CheckSysName(username)) {
                         msg.setCode("110406");
                         msg.setInfo("此用户名已存在");
                         return msg;
-                    }else {
+                    } else {
                         user.setUsername(username);
                     }
                 }
-                if(!userInfo.getEmail().equals(email)){
+                if (!userInfo.getEmail().equals(email)) {
                     Integer countmail = userService.countmail(email);
-                    if(countmail == 1){
+                    if (countmail == 1) {
                         msg.setCode("110407");
                         msg.setInfo("此邮箱已被注册");
                         return msg;
-                    }else{
+                    } else {
                         user.setEmail(email);
                     }
                 }
                 user.setPassword(Base64Encryption.encryptBASE64(password.getBytes()));
                 user.setUid(u.getUid());
-            }else{
+            } else {
                 user.setPassword(Base64Encryption.encryptBASE64(password.getBytes()));
                 user.setUid(u.getUid());
             }
@@ -425,12 +425,12 @@ public class AdminController {
         Subject subject = SecurityUtils.getSubject();
         User user = (User) subject.getPrincipal();
 
-        if(null == user){
+        if (null == user) {
             msg.setCode("500");
             msg.setInfo("当前用户信息不存在");
             return msg;
         }
-        if(images.size()==0){
+        if (images.size() == 0) {
             msg.setCode("404");
             msg.setInfo("为获取到图像信息");
             return msg;
@@ -442,13 +442,13 @@ public class AdminController {
             String imgname = image.getImgname();
             Keys key = keysService.selectKeys(keyid);
 
-            if(!subject.hasRole("admin")){
-                if(image.getUserid()!=user.getId()){
+            if (!subject.hasRole("admin")) {
+                if (image.getUserid() != user.getId()) {
                     break;
                 }
             }
             boolean isDele = false;
-            try{
+            try {
                 if (key.getStorageType() == 1) {
                     isDele = nosImageupload.delNOS(key.getId(), imgname);
                 } else if (key.getStorageType() == 2) {
@@ -459,19 +459,19 @@ public class AdminController {
                     isDele = kodoImageupload.delKODO(key.getId(), imgname);
                 } else if (key.getStorageType() == 5) {
                     isDele = LocUpdateImg.deleteLOCImg(imgname);
-                }else if (key.getStorageType() == 6) {
+                } else if (key.getStorageType() == 6) {
                     isDele = cosImageupload.delCOS(key.getId(), imgname);
-                }else if (key.getStorageType() == 7) {
+                } else if (key.getStorageType() == 7) {
                     isDele = ftpImageupload.delFTP(key.getId(), imgname);
-                }else if (key.getStorageType() == 8) {
+                } else if (key.getStorageType() == 8) {
                     isDele = uFileImageupload.delUFile(key.getId(), imgname);
-                }else {
+                } else {
                     System.err.println("未获取到对象存储参数，删除失败。");
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            if(isDele){
+            if (isDele) {
                 try {
                     imgTempService.delImgAndExp(image.getImguid());
                     imgService.deleimg(imgid);
@@ -483,7 +483,7 @@ public class AdminController {
                     return msg;
                 }
                 msg.setInfo("删除成功");
-            }else{
+            } else {
                 imgTempService.delImgAndExp(image.getImguid());
                 imgService.deleimg(imgid);
                 imgAndAlbumService.deleteImgAndAlbum(imgname);
@@ -495,46 +495,47 @@ public class AdminController {
 
 
     //工具函数
-    private static String getChinaes(int v){
+    private static String getChinaes(int v) {
         String ch = "";
-        switch(v){
-            case 1 :
+        switch (v) {
+            case 1:
                 ch = "一月";
                 break; //可选
-            case 2 :
+            case 2:
                 ch = "二月";
                 break; //可选
-            case 3 :
+            case 3:
                 ch = "三月";
                 break; //可选
-            case 4 :
+            case 4:
                 ch = "四月";
                 break; //可选
-            case 5 :
+            case 5:
                 ch = "五月";
                 break; //可选
-            case 6 :
+            case 6:
                 ch = "六月";
                 break; //可选
-            case 7 :
+            case 7:
                 ch = "七月";
                 break; //可选
-            case 8 :
+            case 8:
                 ch = "八月";
                 break; //可选
-            case 9 :
+            case 9:
                 ch = "九月";
                 break; //可选
-            case 10 :
+            case 10:
                 ch = "十月";
                 break; //可选
-            case 11 :
+            case 11:
                 ch = "十一月";
                 break; //可选
-            case 12 :
+            case 12:
                 ch = "十二月";
                 break; //可选
-            default : ch = "";//可选
+            default:
+                ch = "";//可选
                 //语句
         }
 

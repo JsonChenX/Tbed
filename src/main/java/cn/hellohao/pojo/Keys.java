@@ -10,6 +10,9 @@ public class Keys {
     private Integer storageType;
     private String keyname;
 
+    /**
+     * 构造方法
+     */
     public Keys() {
         super();
     }
